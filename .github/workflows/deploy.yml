@@ -6,19 +6,39 @@ on:
       - dev
       - stage
       - prod
+
   pull_request:
     branches:
       - dev
       - stage
       - prod
+
   workflow_dispatch:
 
 jobs:
+  ci:
+    name: CI Check
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run CI check
+        run: |
+          echo "Pull Request CI check"
+          echo "Source branch: ${{ github.head_ref }}"
+          echo "Target branch: ${{ github.base_ref }}"
+          echo "CI check completed successfully."
+
   deploy:
+    name: Deploy
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
 
     environment:
-      name: ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}
+      name: ${{ github.ref_name }}
 
     steps:
       - name: Checkout code
