@@ -1,0 +1,36 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+      - stage
+      - prod
+  pull_request:
+    branches:
+      - dev
+      - stage
+      - prod
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Show environment
+        run: |
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Environment: ${{ github.ref_name }}"
+          echo "Deployment workflow is running successfully."
+
+      - name: Verify repository
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Commit: ${{ github.sha }}"
