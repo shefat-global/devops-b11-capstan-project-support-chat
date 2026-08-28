@@ -14,7 +14,45 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  ci:
+    name: CI Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Backend typecheck
+        working-directory: backend
+        run: npm run typecheck
+
+      - name: Backend build
+        working-directory: backend
+        run: npm run build
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Frontend lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Frontend build
+        working-directory: frontend
+        run: npm run build
+
+  verify:
+    name: Verify Environment
     runs-on: ubuntu-latest
 
     environment:
@@ -28,7 +66,7 @@ jobs:
         run: |
           echo "Branch: ${{ github.ref_name }}"
           echo "Environment: ${{ github.ref_name }}"
-          echo "Deployment workflow is running successfully."
+          echo "Pipeline validation completed successfully."
 
       - name: Verify repository
         run: |
