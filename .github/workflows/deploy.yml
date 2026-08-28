@@ -9,6 +9,7 @@ on:
 
   pull_request:
     branches:
+      - main
       - dev
       - stage
       - prod
@@ -17,24 +18,44 @@ on:
 
 jobs:
   ci:
-    name: CI Check
-    if: github.event_name == 'pull_request'
+    name: CI Validation
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run CI check
-        run: |
-          echo "Pull Request CI check"
-          echo "Source branch: ${{ github.head_ref }}"
-          echo "Target branch: ${{ github.base_ref }}"
-          echo "CI check completed successfully."
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-  deploy:
-    name: Deploy
-    if: github.event_name != 'pull_request'
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Backend typecheck
+        working-directory: backend
+        run: npm run typecheck
+
+      - name: Backend build
+        working-directory: backend
+        run: npm run build
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Frontend lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Frontend build
+        working-directory: frontend
+        run: npm run build
+
+  verify:
+    name: Verify Environment
     runs-on: ubuntu-latest
 
     environment:
@@ -48,9 +69,49 @@ jobs:
         run: |
           echo "Branch: ${{ github.ref_name }}"
           echo "Environment: ${{ github.ref_name }}"
-          echo "Deployment workflow is running successfully."
+          echo "Pipeline validation completed successfully."
 
       - name: Verify repository
         run: |
           echo "Repository: ${{ github.repository }}"
           echo "Commit: ${{ github.sha }}"
+
+  deploy-dev:
+    name: Deploy to Dev
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev' }}
+    needs: ci
+    runs-on: ubuntu-latest
+
+    environment:
+      name: dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Dev
+        run: |
+          echo "Manual Dev deployment approved."
+          echo "Environment: dev"
+          echo "Commit: ${{ github.sha }}"
+          echo "Dev deployment completed successfully."
+
+  deploy-stage:
+    name: Deploy to Stage
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/stage' }}
+    needs: ci
+    runs-on: ubuntu-latest
+
+    environment:
+      name: stage
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Stage
+        run: |
+          echo "Manual Stage deployment approved."
+          echo "Environment: stage"
+          echo "Commit: ${{ github.sha }}"
+          echo "Stage deployment completed successfully."
