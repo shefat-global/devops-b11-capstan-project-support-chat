@@ -13,6 +13,10 @@ on:
       - dev
       - stage
       - prod
+    types:
+      - opened
+      - synchronize
+      - reopened
 
   workflow_dispatch:
 
@@ -115,3 +119,25 @@ jobs:
           echo "Environment: stage"
           echo "Commit: ${{ github.sha }}"
           echo "Stage deployment completed successfully."
+
+  deploy-prod:
+    name: Deploy to Production
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' && github.event.pull_request.base.ref == 'prod' }}
+    needs: ci
+    runs-on: ubuntu-latest
+
+    environment:
+      name: prod
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Production
+        run: |
+          echo "Production deployment triggered automatically."
+          echo "Environment: prod"
+          echo "Source branch: ${{ github.head_ref }}"
+          echo "Target branch: ${{ github.base_ref }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Production deployment completed successfully."
