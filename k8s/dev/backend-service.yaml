@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: support-chat-backend
+  namespace: support-chat-dev
+  labels:
+    app: support-chat-backend
+    environment: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: support-chat-backend
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+      protocol: TCP
