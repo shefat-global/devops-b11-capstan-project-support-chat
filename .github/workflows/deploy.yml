@@ -95,3 +95,23 @@ jobs:
           echo "Environment: dev"
           echo "Commit: ${{ github.sha }}"
           echo "Dev deployment completed successfully."
+
+  deploy-stage:
+    name: Deploy to Stage
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/stage' }}
+    needs: ci
+    runs-on: ubuntu-latest
+
+    environment:
+      name: stage
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Stage
+        run: |
+          echo "Manual Stage deployment approved."
+          echo "Environment: stage"
+          echo "Commit: ${{ github.sha }}"
+          echo "Stage deployment completed successfully."
