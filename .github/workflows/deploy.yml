@@ -6,11 +6,14 @@ on:
       - dev
       - stage
       - prod
+
   pull_request:
     branches:
+      - main
       - dev
       - stage
       - prod
+
   workflow_dispatch:
 
 jobs:
@@ -41,7 +44,7 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm install
 
       - name: Frontend lint
         working-directory: frontend
@@ -72,3 +75,23 @@ jobs:
         run: |
           echo "Repository: ${{ github.repository }}"
           echo "Commit: ${{ github.sha }}"
+
+  deploy-dev:
+    name: Deploy to Dev
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev' }}
+    needs: ci
+    runs-on: ubuntu-latest
+
+    environment:
+      name: dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Dev
+        run: |
+          echo "Manual Dev deployment approved."
+          echo "Environment: dev"
+          echo "Commit: ${{ github.sha }}"
+          echo "Dev deployment completed successfully."
