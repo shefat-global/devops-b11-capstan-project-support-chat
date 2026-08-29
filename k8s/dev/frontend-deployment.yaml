@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: support-chat-frontend
+  namespace: support-chat-dev
+  labels:
+    app: support-chat-frontend
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: support-chat-frontend
+  template:
+    metadata:
+      labels:
+        app: support-chat-frontend
+        environment: dev
+    spec:
+      containers:
+        - name: frontend
+          image: shiftrobin/support-chat-frontend:dev-7d684b8
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
