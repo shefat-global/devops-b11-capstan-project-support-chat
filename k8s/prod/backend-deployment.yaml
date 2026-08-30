@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: support-chat-backend
+  namespace: support-chat-prod
+  labels:
+    app: support-chat-backend
+    environment: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: support-chat-backend
+  template:
+    metadata:
+      labels:
+        app: support-chat-backend
+        environment: prod
+    spec:
+      containers:
+        - name: backend
+          image: shiftrobin/support-chat-backend:prod-7d684b8
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: NODE_ENV
+              value: production
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

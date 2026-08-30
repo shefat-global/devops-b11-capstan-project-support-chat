@@ -13,6 +13,10 @@ on:
       - dev
       - stage
       - prod
+    types:
+      - opened
+      - synchronize
+      - reopened
 
   workflow_dispatch:
 
@@ -95,3 +99,90 @@ jobs:
           echo "Environment: dev"
           echo "Commit: ${{ github.sha }}"
           echo "Dev deployment completed successfully."
+
+  deploy-stage:
+    name: Deploy to Stage
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/stage' }}
+    needs: ci
+    runs-on: ubuntu-latest
+
+    environment:
+      name: stage
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Stage
+        run: |
+          echo "Manual Stage deployment approved."
+          echo "Environment: stage"
+          echo "Commit: ${{ github.sha }}"
+          echo "Stage deployment completed successfully."
+
+  deploy-prod:
+    name: Deploy to Production
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened' && github.event.pull_request.base.ref == 'prod' }}
+    needs: ci
+    runs-on: ubuntu-latest
+
+    environment:
+      name: prod
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Production
+        run: |
+          echo "Production deployment triggered automatically."
+          echo "Environment: prod"
+          echo "Source branch: ${{ github.head_ref }}"
+          echo "Target branch: ${{ github.base_ref }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Production deployment completed successfully."
+
+  docker:
+    name: Build and Push Docker Images
+    needs: ci
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod') }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: meta
+        shell: bash
+        run: |
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            echo "tag=dev-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=prod-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: shiftrobin/support-chat-backend:${{ steps.meta.outputs.tag }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: shiftrobin/support-chat-frontend:${{ steps.meta.outputs.tag }}
