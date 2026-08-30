@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: shiftrobin/support-chat-backend:prod-7d684b8
+          image: shiftrobin/support-chat-backend:prod-fe78d34
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
