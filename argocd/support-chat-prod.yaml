@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: support-chat-prod
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/shefat-global/devops-b11-capstan-project-support-chat.git
+    targetRevision: prod
+    path: k8s/prod
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: support-chat-prod
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
